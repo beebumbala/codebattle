@@ -3,13 +3,29 @@ import traceback
 import time
 import sys
 import os
+import ast
 from contextlib import redirect_stdout
 from io import StringIO
 
 class Checker:
     def __init__(self):
         self.execution_result = []
-
+      
+    def check_security():
+        vulnerable = ['subprocess', 'sys', 'pickle', 'socket', 'requests']
+        tree = ast.parse(open('check/solution.py').read())
+    
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ImportFrom | ast.Import):
+                if isinstance(node, ast.Import):
+                    for pack in node.names:
+                        if pack.name in vulnerable:
+                            return False
+                else:
+                    if node.module in vulnerable:
+                        return False
+        return True
+  
     def call(self):
         original_stdout = sys.stdout
         sys.stdout = StringIO()
@@ -20,7 +36,7 @@ class Checker:
             # You would need to replace 'solution' with the actual function you want to call.
             # The next line assumes the function is imported from the 'solution' module in the 'check' package.
             from check.solution import solution
-
+            
             for arguments in args_list['arguments']:
                 starts_at = time.monotonic()
                 try:
