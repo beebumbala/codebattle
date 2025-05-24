@@ -36,7 +36,6 @@ class Checker:
             # You would need to replace 'solution' with the actual function you want to call.
             # The next line assumes the function is imported from the 'solution' module in the 'check' package.
             from check.solution import solution
-            starts_at = time.monotonic()
             secure = self.check_security()
 
             if secure:
@@ -60,13 +59,7 @@ class Checker:
                         sys.stdout.close()
                         sys.stdout = StringIO()
             else:
-                self.to_output(
-                  type='error',
-                  value='Usage of forbidden packages found',
-                  time=self.print_time(starts_at)
-                )
-                sys.stdout.close()
-                sys.stdout = StringIO()
+                self.execution_result.append({'type': 'error', 'value': 'Usage of forbidden packages found'})
         except Exception as e:
             self.execution_result.append({'type': 'error', 'value': traceback.format_exc()})
         finally:
