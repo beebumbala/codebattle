@@ -10,11 +10,11 @@ from io import StringIO
 class Checker:
     def __init__(self):
         self.execution_result = []
-      
-    def check_security():
+
+    def check_security(self):
         vulnerable = ['subprocess', 'sys', 'pickle', 'socket', 'requests']
         tree = ast.parse(open('check/solution.py').read())
-    
+
         for node in ast.walk(tree):
             if isinstance(node, ast.ImportFrom | ast.Import):
                 if isinstance(node, ast.Import):
@@ -25,7 +25,7 @@ class Checker:
                     if node.module in vulnerable:
                         return False
         return True
-  
+
     def call(self):
         original_stdout = sys.stdout
         sys.stdout = StringIO()
@@ -36,26 +36,37 @@ class Checker:
             # You would need to replace 'solution' with the actual function you want to call.
             # The next line assumes the function is imported from the 'solution' module in the 'check' package.
             from check.solution import solution
-            
-            for arguments in args_list['arguments']:
-                starts_at = time.monotonic()
-                try:
-                    with redirect_stdout(sys.stdout):
+            starts_at = time.monotonic()
+            secure = self.check_security()
+
+            if secure:
+                for arguments in args_list['arguments']:
+                    starts_at = time.monotonic()
+                    try:
+                        with redirect_stdout(sys.stdout):
+                            self.to_output(
+                                type='result',
+                                value=solution(*arguments),
+                                time=self.print_time(starts_at)
+                            )
+                        sys.stdout.close()
+                        sys.stdout = StringIO()
+                    except Exception as e:
                         self.to_output(
-                            type='result',
-                            value=solution(*arguments),
+                            type='error',
+                            value=str(e),
                             time=self.print_time(starts_at)
                         )
-                    sys.stdout.close()
-                    sys.stdout = StringIO()
-                except Exception as e:
-                    self.to_output(
-                        type='error',
-                        value=str(e),
-                        time=self.print_time(starts_at)
-                    )
-                    sys.stdout.close()
-                    sys.stdout = StringIO()
+                        sys.stdout.close()
+                        sys.stdout = StringIO()
+            else:
+                self.to_output(
+                  type='error',
+                  value='Usage of forbidden packages found',
+                  time=self.print_time(starts_at)
+                )
+                sys.stdout.close()
+                sys.stdout = StringIO()
         except Exception as e:
             self.execution_result.append({'type': 'error', 'value': traceback.format_exc()})
         finally:
