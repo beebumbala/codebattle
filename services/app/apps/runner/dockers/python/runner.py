@@ -3,6 +3,7 @@ import sys
 import json
 
 
+# legacy class, actual is checker.py
 class Runner:
 
     def __init__(self, args_list):
